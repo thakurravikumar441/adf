@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Arduino Data</title>
+    <script type="text/javascript">
+        window.onload = function() {
+            const eventSource = new EventSource("/arduino-data");
+            eventSource.onmessage = function(event) {
+                document.getElementById("data").innerText = event.data;
+            };
+        };
+    </script>
+</head>
+<body>
+<h1>Arduino Data</h1>
+<div id="data">Waiting for data...</div>
+</body>
+</html>

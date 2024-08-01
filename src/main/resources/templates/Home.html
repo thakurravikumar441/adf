@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <link rel="stylesheet" href="Home.css">
+    <style>
+        .number {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            transform-origin: center center;
+        }
+    </style>
+</head>
+<body>
+    <div class="Navbar">
+        <button onclick="home()">Home</button>
+        <button onclick="config()">Config</button>
+    </div>
+    <div class="Logo">
+        <!-- Use a direct URL or relative path for the image -->
+        <img src="https://www.drdo.gov.in/drdo/sites/default/files/drdo_logo_0.png?w=100" alt="Logo">
+    </div>
+    <div class="ApplicationName">
+    </div>
+    <div class="MainContent">
+        <div class="data">
+            <div class="AzhmatAngle">
+                <label>Azimuth angle(Degree)* : </label>
+            </div>
+            <div class="elevation">
+                <label>Elevation angle(Degree)* : </label>
+            </div>
+            <div class="Range">
+                <label>Range(meter) : </label>
+            </div>
+        </div>
+        <div class="circle" id="circle"></div>
+    </div>
+    <script>
+        function config() {
+            window.location.href = "Config";
+        }
+
+        function home() {
+            window.location.href = "/";
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            const circle = document.getElementById('circle');
+            const radius = circle.offsetWidth / 2;
+            const centerX = radius;
+            const centerY = radius;
+
+            for (let i = 0; i <= 360; i += 10) {
+                const angle = (i - 90) * (Math.PI / 180); // Convert angle to radians and adjust for starting position
+                const x = centerX + (radius - 20) * Math.cos(angle); // Adjust radius for better positioning
+                const y = centerY + (radius - 20) * Math.sin(angle); // Adjust radius for better positioning
+
+                const number = document.createElement('div');
+                number.className = 'number';
+                number.textContent = i;
+                number.style.left = `${x}px`;
+                number.style.top = `${y}px`;
+
+                circle.appendChild(number);
+            }
+        });
+    </script>
+</body>
+</html>
