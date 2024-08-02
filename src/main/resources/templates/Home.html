@@ -3,70 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
-    <link rel="stylesheet" href="Home.css">
     <style>
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .projectName1,.projectName2,.projectName3 {
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-top: 0;
+            text-align: center;
+            margin-left : 5%;
+        }
+        .ProjectName{
+            display: flex;
+            flex-direction: column;
+            margin-left : 25%;
+        }
+        .Logo {
+            display: flex;
+            flex-direction: row;
+            background-color: #0568A1;
+            width: 100%;
+            height: auto;
+            border: 1px solid black;
+            padding: 10px; /* Add padding to provide spacing around content */
+        }
+        .Logo img {
+            max-width: 30%;
+            height: auto;
+            margin-bottom: 10px; /* Add margin to separate image from text */
+        }
+        .Navbar {
+            display: flex;
+            padding: 1%;
+            background-color: #0568A1;
+        }
+        .Navbar button {
+            padding: 1%;
+            color: white;
+            background-color: #0568A1;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background-color 0.3s;
+        }
+        .Navbar button:hover {
+            background-color: #777;
+        }
+        .circle {
+            position: relative;
+            width: 30%;
+            height: 0;
+            padding-bottom: 30%;
+            border-radius: 50%;
+            border: 1px solid #333;
+            margin: 20px auto;
+        }
+        .inner-circle {
+            position: absolute;
+            width: 49%;
+            height: 49%;
+            border-radius: 50%;
+            border: 1px solid #333;
+            top: 49%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
         .number {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 5%;
+            height: 5%;
             text-align: center;
-            transform-origin: center center;
+            transform: translate(-50%, -50%);
+        }
+        .text2{
+           margin-top : 101%;
+           margin-left : 30%;
+        }
+        @media (max-width: 600px) {
+            .Navbar {
+                flex-direction: column;
+                padding: 1%;
+            }
+            .Navbar button {
+                margin-bottom: 2%;
+                width: 100%;
+                padding: 2%;
+            }
+            .circle {
+                width: 75%;
+                padding-bottom: 75%;
+            }
+            .inner-circle {
+                width: 54%;
+                height: 54%;
+                margin-top : 0%;
+            }
+        }
+        @media (min-width: 601px) and (max-width: 900px) {
+            .Navbar {
+                flex-direction: row;
+                padding: 1%;
+            }
+            .Navbar button {
+                padding: 1.5%;
+                font-size: 1.4em;
+            }
+        }
+        @media (min-width: 901px) {
+            .Navbar {
+                padding: 1.5%;
+            }
+            .Navbar button {
+                padding: 1%;
+                font-size: 1.2em;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="Navbar">
-        <button onclick="home()">Home</button>
-        <button onclick="config()">Config</button>
+<div class="Navbar">
+    <button onclick="home()">Home</button>
+    <button onclick="config()">Config</button>
+</div>
+<div class="Logo">
+    <img src="https://www.drdo.gov.in/drdo/sites/default/files/drdo_logo_0.png?w=100" alt="Logo">
+    <div class = "ProjectName">
+        <div class="projectName1">Acoustic</div>
+        <div class="projectName2">Direction</div>
+        <div class="projectName3">Finder</div>
     </div>
-    <div class="Logo">
-        <!-- Use a direct URL or relative path for the image -->
-        <img src="https://www.drdo.gov.in/drdo/sites/default/files/drdo_logo_0.png?w=100" alt="Logo">
-    </div>
-    <div class="ApplicationName">
-    </div>
-    <div class="MainContent">
-        <div class="data">
-            <div class="AzhmatAngle">
-                <label>Azimuth angle(Degree)* : </label>
-            </div>
-            <div class="elevation">
-                <label>Elevation angle(Degree)* : </label>
-            </div>
-            <div class="Range">
-                <label>Range(meter) : </label>
-            </div>
+</div>
+<div class="ApplicationName"></div>
+<div class="MainContent">
+    <div class="data">
+        <div class="AzhmatAngle">
+            <label>Azimuth angle(Degree)* : </label>
+            <input class="az" id="az" type="number">
         </div>
-        <div class="circle" id="circle"></div>
+        <div class="elevation">
+            <label>Elevation angle(Degree)* : </label>
+            <input class="eleva" id="eleva" type="number">
+        </div>
+        <div class="Range">
+            <label>Range(meter) : </label>
+            <input class="range" id="range" type="number">
+        </div>
     </div>
-    <script>
-        function config() {
-            window.location.href = "Config";
+    <div class="circle" id="circle">
+        <div class="inner-circle" id="inner-circle"></div>
+        <h3 class="text2">Directional Clock</h3>
+    </div>
+</div>
+<script>
+    function config() {
+        window.location.href = "Config";
+    }
+    function home() {
+        window.location.href = "/";
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+        const circle = document.getElementById('circle');
+        const radius = circle.offsetWidth / 2;
+        const centerX = radius;
+        const centerY = radius;
+        for (let i = 0; i < 360; i += 30) {
+            const angle = (i - 90) * (Math.PI / 180);
+            const x = centerX + radius * 0.85 * Math.cos(angle);
+            const y = centerY + radius * 0.85 * Math.sin(angle);
+            const number = document.createElement('div');
+            number.className = 'number';
+            number.textContent = i;
+            number.style.left = `${(x / circle.offsetWidth) * 100}%`;
+            number.style.top = `${(y / circle.offsetHeight) * 100}%`;
+            circle.appendChild(number);
         }
 
-        function home() {
-            window.location.href = "/";
+        const innerCircle = document.getElementById('inner-circle');
+        const innerRadius = innerCircle.offsetWidth / 1;
+        const innerCenterX = centerX;
+        const innerCenterY = centerY;
+        for (let i = 1; i <= 12; i++) {
+            const angle = (i - 3) * (Math.PI * 2) / 12;
+            const x = innerCenterX + innerRadius * 0.85 * Math.cos(angle);
+            const y = innerCenterY + innerRadius * 0.85 * Math.sin(angle);
+            const number = document.createElement('div');
+            number.className = 'number';
+            number.textContent = i;
+            number.style.left = `${(x / circle.offsetWidth) * 100}%`;
+            number.style.top = `${(y / circle.offsetHeight) * 100}%`;
+            innerCircle.appendChild(number);
         }
-        document.addEventListener("DOMContentLoaded", function() {
-            const circle = document.getElementById('circle');
-            const radius = circle.offsetWidth / 2;
-            const centerX = radius;
-            const centerY = radius;
-
-            for (let i = 0; i <= 360; i += 10) {
-                const angle = (i - 90) * (Math.PI / 180); // Convert angle to radians and adjust for starting position
-                const x = centerX + (radius - 20) * Math.cos(angle); // Adjust radius for better positioning
-                const y = centerY + (radius - 20) * Math.sin(angle); // Adjust radius for better positioning
-
-                const number = document.createElement('div');
-                number.className = 'number';
-                number.textContent = i;
-                number.style.left = `${x}px`;
-                number.style.top = `${y}px`;
-
-                circle.appendChild(number);
-            }
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
