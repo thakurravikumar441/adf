@@ -1,16 +1,124 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+    <title>Configuration</title>
+    <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+}
+
+.navbar {
+    width: 100%;
+    background-color:#0568A1;
+    overflow: hidden;
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.navbar a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 40px 40px;
+}
+
+.controls label {
+    margin-right: 20px;
+}
+
+.controls select,
+.controls button {
+    padding: 5px 10px;
+    margin-right: 10px;
+}
+
+.serial-monitor {
+    margin-top: 40px;
+}
+
+#monitor {
+    width: 500px;
+    height: 400px;
+    padding: 40px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+}
+
+    </style>
+  </head>
 <body>
-<p>welcome to config</p>
-<button onclick="home()"> Home </button>
-</body>
-<script>
-    home(){
-    window.location.href = "/";
+    <body>
+        <div class="navbar"><a href="Home.html">Home</a>
+            <a href="Config.html">Configuration</a>
+            </div>
+            <div class="controls">
+                <label for="com-port">Available COM Port:</label>
+                <select id="com-port">
+                    <option value="com1">COM1</option>
+                    <option value="com2">COM2</option>
+                    <option value="com3">COM3</option>
+                    <!-- Add more options as needed -->
+                </select>
+                <label for="bit-rate">Bit Rate:</label>
+                <select id="bit-rate">
+                    <option value="9600">9600</option>
+                    <option value="14400">14400</option>
+                    <option value="19200">19200</option>
+                    <!-- Add more options as needed -->
+                </select>
+                <button id="connect" onclick="enableDisconnect()">Connect</button>
+                <button id="disconnect" disabled>Disconnect</button>
+            </div>
+            <div class="serial-monitor">
+                <textarea id="monitor" readonly></textarea>
+            </div>
+        </div>
+    <script>
+        function enableDisconnect() {
+      document.getElementById('disconnect').disabled = false;
     }
-</script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const connectButton = document.getElementById('connect');
+    const disconnectButton = document.getElementById('disconnect');
+    const monitor = document.getElementById('monitor');
+
+    connectButton.addEventListener('click', () => {
+        const comPort = document.getElementById('com-port').value;
+        const bitRate = document.getElementById('bit-rate').value;
+        monitor.value += `Connected to ${comPort} at ${bitRate} bit rate.\n`;
+    });
+
+    disconnectButton.addEventListener('click', () => {
+        monitor.value += 'Disconnected.\n';
+    });
+});
+    </script>
+</body>
 </html>
