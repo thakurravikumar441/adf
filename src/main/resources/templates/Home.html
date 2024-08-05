@@ -2,12 +2,31 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <style>
         body {
             padding: 0;
             margin: 0;
             font-family: Arial, sans-serif;
+        }
+
+        .data{
+        width : 84%;
+        }
+        .AzhmatAngle{
+            width: 35%;
+            margin-top: 3%;
+
+        }
+        .elevation{
+            width: 35%;
+            margin-top: 3%;
+
+        }
+        .Range{
+            width: 35%;
+            margin-top: 3%;
         }
         .projectName1,.projectName2,.projectName3 {
             color: white;
@@ -26,8 +45,8 @@
             display: flex;
             flex-direction: row;
             background-color: #0568A1;
-            width: 100%;
-            height: auto;
+            width: 98.%;
+            height: 5%;
             border: 1px solid black;
             padding: 10px; /* Add padding to provide spacing around content */
         }
@@ -54,13 +73,14 @@
             background-color: #777;
         }
         .circle {
-            position: relative;
-            width: 30%;
-            height: 0;
-            padding-bottom: 30%;
-            border-radius: 50%;
-            border: 1px solid #333;
-            margin: 20px auto;
+                position: relative;
+                width: 23%;
+                height: 0;
+                padding-bottom: 23%;
+                border-radius: 50%;
+                border: 1px solid #333;
+                MARGIN-LEFT: 50%;
+                margin-top: -10%;
         }
         .inner-circle {
             position: absolute;
@@ -80,7 +100,7 @@
             transform: translate(-50%, -50%);
         }
         .text2{
-           margin-top : 101%;
+           margin-top : 100%;
            margin-left : 30%;
         }
         @media (max-width: 600px) {
@@ -88,29 +108,100 @@
                 flex-direction: column;
                 padding: 1%;
             }
+
+
             .Navbar button {
-                margin-bottom: 2%;
+                margin-bottom: 10px;
                 width: 100%;
-                padding: 2%;
+                padding: 10px;
+                font-size: 1.2em;
             }
+
+            .Logo {
+                flex-direction: column;
+            }
+            .Logo img{
+               max-width: 100%;
+            }
+
+            .ProjectName {
+                margin: 0;
+                flex-direction: row;
+                gap: 8px;
+            }
+
+            .projectName1, .projectName2, .projectName3 {
+                font-size: 1.8em;
+                margin: 5px 0;
+            }
+            .data {
+                width : 98%;
+                margin-left: 2px;
+            }
+            .elevation{
+                margin-top: -14%;
+                margin-left: 55%;
+            }
+
             .circle {
-                width: 75%;
-                padding-bottom: 75%;
+                margin-top: 2%;
+                width: 90%;
+                padding-bottom: 90%;
+                margin-left: 0%;
             }
+
             .inner-circle {
-                width: 54%;
-                height: 54%;
-                margin-top : 0%;
+                width: 60%;
+                height: 60%;
             }
         }
+
         @media (min-width: 601px) and (max-width: 900px) {
             .Navbar {
                 flex-direction: row;
                 padding: 1%;
+                justify-content: space-around;
             }
+
             .Navbar button {
-                padding: 1.5%;
+                padding: 10px 20px;
                 font-size: 1.4em;
+                margin: 0 10px;
+            }
+
+            .Logo {
+                justify-content: space-between;
+                padding: 10px 20px;
+            }
+
+            .ProjectName {
+                margin: 0;
+            }
+
+            .projectName1, .projectName2, .projectName3 {
+                font-size: 2em;
+                margin: 0;
+            }
+
+            .circle {
+                width: 60%;
+                padding-bottom: 60%;
+            }
+
+            .inner-circle {
+                width: 55%;
+                height: 55%;
+            }
+
+            .data {
+                width: 100%;
+                display: flex;
+                justify-content: space-around;
+            }
+
+            .AzhmatAngle, .elevation, .Range {
+                width: 30%;
+                margin-top: 0;
             }
         }
         @media (min-width: 901px) {
@@ -159,17 +250,22 @@
     </div>
 </div>
 <script>
+
     function config() {
         window.location.href = "Config";
     }
+
     function home() {
         window.location.href = "/";
     }
+
     document.addEventListener("DOMContentLoaded", function() {
         const circle = document.getElementById('circle');
         const radius = circle.offsetWidth / 2;
         const centerX = radius;
         const centerY = radius;
+
+        // Create the numbers around the circle
         for (let i = 0; i < 360; i += 30) {
             const angle = (i - 90) * (Math.PI / 180);
             const x = centerX + radius * 0.85 * Math.cos(angle);
@@ -183,9 +279,11 @@
         }
 
         const innerCircle = document.getElementById('inner-circle');
-        const innerRadius = innerCircle.offsetWidth / 1;
+        const innerRadius = innerCircle.offsetWidth / 2;
         const innerCenterX = centerX;
         const innerCenterY = centerY;
+
+        // Create the numbers inside the inner circle
         for (let i = 1; i <= 12; i++) {
             const angle = (i - 3) * (Math.PI * 2) / 12;
             const x = innerCenterX + innerRadius * 0.85 * Math.cos(angle);
@@ -197,6 +295,48 @@
             number.style.top = `${(y / circle.offsetHeight) * 100}%`;
             innerCircle.appendChild(number);
         }
+
+        // Adjust the positioning when the screen width changes
+        window.addEventListener('resize', function() {
+            adjustNumberPositions();
+        });
+
+        function adjustNumberPositions() {
+            // Remove all existing numbers
+            const existingNumbers = document.querySelectorAll('.number');
+            existingNumbers.forEach(function(number) {
+                number.remove();
+            });
+
+            // Recreate the numbers around the circle
+            for (let i = 0; i < 360; i += 30) {
+                const angle = (i - 90) * (Math.PI / 180);
+                const x = centerX + radius * 0.85 * Math.cos(angle);
+                const y = centerY + radius * 0.85 * Math.sin(angle);
+                const number = document.createElement('div');
+                number.className = 'number';
+                number.textContent = i;
+                number.style.left = `${(x / circle.offsetWidth) * 100}%`;
+                number.style.top = `${(y / circle.offsetHeight) * 100}%`;
+                circle.appendChild(number);
+            }
+
+            // Recreate the numbers inside the inner circle
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i - 3) * (Math.PI * 2) / 12;
+                const x = innerCenterX + innerRadius * 1.5 * Math.cos(angle);
+                const y = innerCenterY + innerRadius * 1.5 * Math.sin(angle);
+                const number = document.createElement('div');
+                number.className = 'number';
+                number.textContent = i;
+                number.style.left = `${(x / circle.offsetWidth) * 100}%`;
+                number.style.top = `${(y / circle.offsetHeight) * 100}%`;
+                innerCircle.appendChild(number);
+            }
+        }
+
+        // Initial call to set positions
+        adjustNumberPositions();
     });
 </script>
 </body>
