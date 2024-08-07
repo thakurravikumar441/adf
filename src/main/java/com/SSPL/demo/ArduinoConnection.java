@@ -10,11 +10,8 @@ public class ArduinoConnection {
 
     @PostMapping("/configure-port")
     public String configurePort(@RequestBody PortConfig portConfig) {
-        int portNumber = portConfig.getPortNumber();
+        String portName = String.valueOf(portConfig.getPortNumber());
         int bitRate = portConfig.getBitRate();
-
-        // Modify portName based on your actual port name format
-        String portName = "COM" + portNumber; // Example: "COM3" or "/dev/ttyUSB0"
 
         try {
             if (serialPort != null && serialPort.isOpen()) {
