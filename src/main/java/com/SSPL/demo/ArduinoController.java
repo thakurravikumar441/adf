@@ -21,7 +21,7 @@ public class ArduinoController {
     }
     @GetMapping("/Config")
     public String config() {
-        return "Config"; // This will render Config.html from the templates folder
+        return "Config";
     }
 
     @RequestMapping("/arduino-data")
