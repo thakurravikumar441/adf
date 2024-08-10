@@ -213,6 +213,50 @@
                 font-size: 1.2em;
             }
         }
+
+        .azimuth-hand {
+            position: absolute;
+            width: 2px;
+            height: 45%;
+            background: linear-gradient(to bottom, #003366, #000080);
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+            pointer-events: none; /* To prevent any interference with clicking */
+            z-index: 1;
+        }
+
+        .azimuth-hand::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid red;
+        }
+
+        .circle-center {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #fff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            border: 2px solid red; /* Match the color of the azimuth hand */
+        }
+
+
+
+
     </style>
 </head>
 <body>
@@ -233,19 +277,21 @@
     <div class="data">
         <div class="AzhmatAngle">
             <label>Azimuth angle(Degree)* : </label>
-            <input class="az" id="az" type="number">
+            <input class="az" id="az" type="number" value="0">
         </div>
         <div class="elevation">
             <label>Elevation angle(Degree)* : </label>
-            <input class="eleva" id="eleva" type="number">
+            <input class="eleva" id="eleva" type="number" value="0">
         </div>
         <div class="Range">
             <label>Range(meter) : </label>
-            <input class="range" id="range" type="number">
+            <input class="range" id="range" type="number" value="0">
         </div>
     </div>
     <div class="circle" id="circle">
         <div class="inner-circle" id="inner-circle"></div>
+        <div class="circle-center"></div>
+        <div id="azimuth-hand" class="azimuth-hand"></div> <!-- Azimuth hand -->
         <h3 class="text2">Directional Clock</h3>
     </div>
 </div>
@@ -335,8 +381,27 @@
             }
         }
 
-        // Initial call to set positions
+        // Update the azimuth hand based on input
+        const azInput = document.getElementById('az');
+        const azimuthHand = document.getElementById('azimuth-hand');
+
+        function updateAzimuthHand() {
+            const azValue = parseInt(azInput.value, 10) || 0; // Get the current azimuth value, default to 0
+            if (azValue > 360) {
+                azimuthHand.style.transform = `translate(-50%, -100%) rotate(0rad)`;
+                return; // Exit the function early
+            }
+
+            const azimuthAngle = azValue  * (Math.PI / 180); // Convert azimuth value to radians
+
+            azimuthHand.style.transform = `translate(-50%, -100%) rotate(${azimuthAngle}rad)`;
+        }
+
+        azInput.addEventListener('input', updateAzimuthHand);
+
+        // Initial call to set positions and update the azimuth hand
         adjustNumberPositions();
+        updateAzimuthHand();
     });
 </script>
 </body>
