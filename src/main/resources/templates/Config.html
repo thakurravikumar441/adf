@@ -188,51 +188,127 @@
     </div>
 </div>
 <div class="controls">
-    <label for="com-port">Available COM Port:</label>
-    <select id="com-port">
-        <option value="com1">COM1</option>
-        <option value="com2">COM2</option>
-        <option value="com3">COM3</option>
-        <!-- Add more options as needed -->
-    </select>
     <label for="bit-rate">Bit Rate:</label>
     <select id="bit-rate">
         <option value="9600">9600</option>
         <option value="14400">14400</option>
         <option value="19200">19200</option>
-        <!-- Add more options as needed -->
     </select>
-    <button id="connect" onclick="enableDisconnect()">Connect</button>
+    <button id="connect">Connect</button>
     <button id="disconnect" disabled>Disconnect</button>
 </div>
 <div class="serial-monitor">
     <textarea id="monitor" readonly></textarea>
 </div>
 <script>
-function config() {
-        window.location.href = "Config";
-    }
-    function home() {
-        window.location.href = "/";
-    }
-    function enableDisconnect() {
-        document.getElementById('disconnect').disabled = false;
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-        const connectButton = document.getElementById('connect');
-        const disconnectButton = document.getElementById('disconnect');
-        const monitor = document.getElementById('monitor');
+let port = null;
+let reader = null;
+let writer = null;
+let bitRate = '';
 
-        connectButton.addEventListener('click', () => {
-            const comPort = document.getElementById('com-port').value;
-            const bitRate = document.getElementById('bit-rate').value;
-            monitor.value += `Connected to ${comPort} at ${bitRate} bit rate.\n`;
+async function home() {
+    window.location.href = "/";
+}
+
+async function config() {
+    window.location.href = "Config";
+}
+
+document.getElementById('connect').addEventListener('click', async () => {
+    const monitor = document.getElementById('monitor');
+    bitRate = document.getElementById('bit-rate').value;
+
+    try {
+        // Prompt the user to select a port
+        port = await navigator.serial.requestPort();
+
+        if (port && bitRate) {
+            // Open the port with the selected bit rate
+            await port.open({ baudRate: parseInt(bitRate) });
+
+            // Initialize reader and writer
+            reader = port.readable.getReader();
+            writer = port.writable.getWriter();
+
+            monitor.value += `Connected successfully at ${bitRate} baud.\n`;
+            monitor.scrollTop = monitor.scrollHeight; // Auto-scroll to bottom
+
+            // Start reading data
+            readLoop();
+
+            document.getElementById('disconnect').disabled = false;
+        } else {
+            monitor.value += 'Please select a COM Port and Bit Rate.\n';
+            monitor.scrollTop = monitor.scrollHeight;
+        }
+    } catch (error) {
+        monitor.value += `Error connecting: ${error.message}\n`;
+        monitor.scrollTop = monitor.scrollHeight;
+    }
+});
+
+async function readLoop() {
+    while (port.readable) {
+        try {
+            const { value, done } = await reader.read();
+            if (done) {
+                break;
+            }
+            const decodedData = new TextDecoder().decode(value);
+            document.getElementById('monitor').value += `Data received: ${decodedData}\n`;
+
+            // Send the decoded data to the backend
+            await sendDataToBackend(decodedData);
+
+            document.getElementById('monitor').scrollTop = document.getElementById('monitor').scrollHeight;
+        } catch (error) {
+            console.error('Error reading data:', error);
+            break;
+        }
+    }
+}
+
+async function sendDataToBackend(data) {
+    try {
+        const response = await fetch('/api/serial-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ data: data }),
         });
 
-        disconnectButton.addEventListener('click', () => {
-            monitor.value += 'Disconnected.\n';
-        });
-    });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const responseData = await response.text();
+        console.log('Response from backend:', responseData);
+    } catch (error) {
+        console.error('Error sending data to backend:', error);
+    }
+}
+
+
+document.getElementById('disconnect').addEventListener('click', async () => {
+    try {
+        if (reader) {
+            await reader.cancel();
+            reader.releaseLock();
+        }
+        if (writer) {
+            await writer.releaseLock();
+        }
+        if (port && port.opened) {
+            await port.close();
+        }
+        document.getElementById('disconnect').disabled = true;
+        document.getElementById('monitor').value += 'Disconnected successfully.\n';
+        document.getElementById('monitor').scrollTop = document.getElementById('monitor').scrollHeight;
+    } catch (error) {
+        document.getElementById('monitor').value += `Error disconnecting: ${error.message}\n`;
+        document.getElementById('monitor').scrollTop = document.getElementById('monitor').scrollHeight;
+    }
+});
 </script>
-</body>
 </html>
