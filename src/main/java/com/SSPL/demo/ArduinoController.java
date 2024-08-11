@@ -23,6 +23,10 @@ public class ArduinoController {
     public String config() {
         return "Config";
     }
+    @GetMapping("/test")
+    public String Test() {
+        return "testapge";
+    }
 
     @RequestMapping("/arduino-data")
     public SseEmitter streamArduinoData() {

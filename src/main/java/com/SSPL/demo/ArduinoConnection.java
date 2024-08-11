@@ -2,9 +2,12 @@ package com.SSPL.demo;
 
 import com.fazecast.jSerialComm.SerialPort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class ArduinoConnection {
@@ -58,6 +61,16 @@ public class ArduinoConnection {
         }
     }
 
+    // New method to send data to the frontend
+    @GetMapping("/api/update-data")
+    public ResponseEntity<Map<String, Integer>> sendDataToFrontend() {
+        Map<String, Integer> response = new HashMap<>();
+        response.put("azmat", azmat);
+        response.put("elevation", elevation);
+        response.put("range", range);
+
+        return ResponseEntity.ok(response);
+    }
 
     // Additional methods for serial port configuration and handling can be added here.
 }

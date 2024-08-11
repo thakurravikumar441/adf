@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Acoustic Direction Finder</title>
     <style>
         body {
             padding: 0;
@@ -13,6 +13,42 @@
 
         .data{
         width : 84%;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 40px 40px;
+        }
+        .controls label {
+            margin-right: 20px;
+        }
+        .controls select,
+        .controls button {
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
+        .serial-monitor {
+            margin-top: 40px;
+            width: 90%;
+            height: 200px;
+            overflow-y: auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #monitor {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            overflow-y: auto;
         }
         .AzhmatAngle{
             width: 35%;
@@ -108,8 +144,16 @@
                 flex-direction: column;
                 padding: 1%;
             }
-
-
+            #connect{
+                    margin-left: -142%;
+                    margin-top: 29%;
+            }
+            #disconnect{
+                    margin-top: 28%;
+            }
+            .controls{
+            flex-flow : wrap;
+            }
             .Navbar button {
                 margin-bottom: 10px;
                 width: 100%;
@@ -155,6 +199,7 @@
                 height: 60%;
             }
         }
+
 
         @media (min-width: 601px) and (max-width: 900px) {
             .Navbar {
@@ -253,65 +298,104 @@
             z-index: 2;
             border: 2px solid red; /* Match the color of the azimuth hand */
         }
-
-
-
-
     </style>
 </head>
 <body>
 <div class="Navbar">
-    <button onclick="home()">Home</button>
-    <button onclick="config()">Config</button>
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('config')">Config</button>
 </div>
-<div class="Logo">
-    <img src="https://www.drdo.gov.in/drdo/sites/default/files/drdo_logo_0.png?w=100" alt="Logo">
-    <div class = "ProjectName">
-        <div class="projectName1">Acoustic</div>
-        <div class="projectName2">Direction</div>
-        <div class="projectName3">Finder</div>
-    </div>
-</div>
-<div class="ApplicationName"></div>
-<div class="MainContent">
-    <div class="data">
-        <div class="AzhmatAngle">
-            <label>Azimuth angle(Degree)* : </label>
-            <input class="az" id="az" type="number" value="0">
-        </div>
-        <div class="elevation">
-            <label>Elevation angle(Degree)* : </label>
-            <input class="eleva" id="eleva" type="number" value="0">
-        </div>
-        <div class="Range">
-            <label>Range(meter) : </label>
-            <input class="range" id="range" type="number" value="0">
-        </div>
-    </div>
-    <div class="circle" id="circle">
-        <div class="inner-circle" id="inner-circle"></div>
-        <div class="circle-center"></div>
-        <div id="azimuth-hand" class="azimuth-hand"></div> <!-- Azimuth hand -->
-        <h3 class="text2">Directional Clock</h3>
-    </div>
-</div>
+<div id="app"></div>
 <script>
+let monitorData = ''; // Global variable to store monitor data
 
-    function config() {
-        window.location.href = "Config";
+const pages = {
+    home: `
+        <div class="Logo">
+            <img src="https://www.drdo.gov.in/drdo/sites/default/files/drdo_logo_0.png?w=100" alt="Logo">
+            <div class="ProjectName">
+                <div class="projectName1">Acoustic</div>
+                <div class="projectName2">Direction</div>
+                <div class="projectName3">Finder</div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="data">
+                <div class="AzhmatAngle">
+                    <label>Azimuth angle (Degree)*:</label>
+                    <input class="az" id="az" type="number" value="0">
+                </div>
+                <div class="elevation">
+                    <label>Elevation angle (Degree)*:</label>
+                    <input class="eleva" id="eleva" type="number" value="0">
+                </div>
+                <div class="Range">
+                    <label>Range (meter):</label>
+                    <input class="range" id="range" type="number" value="0">
+                </div>
+            </div>
+            <div class="circle" id="circle">
+                <div class="inner-circle" id="inner-circle"></div>
+                <div class="circle-center"></div>
+                <div id="azimuth-hand" class="azimuth-hand"></div>
+                <h3 class="text2">Directional Clock</h3>
+            </div>
+        </div>
+    `,
+    config: `
+        <div class="Logo">
+            <img src="https://www.drdo.gov.in/drdo/sites/default/files/drdo_logo_0.png?w=100" alt="Logo">
+            <div class="ProjectName">
+                <div class="projectName1">Acoustic</div>
+                <div class="projectName2">Direction</div>
+                <div class="projectName3">Finder</div>
+            </div>
+        </div>
+        <div class="container">
+            <h1>Configuration Page</h1>
+            <div class="controls">
+                <label for="bit-rate">Bit Rate:</label>
+                <select id="bit-rate">
+                    <option value="9600">9600</option>
+                    <option value="14400">14400</option>
+                    <option value="19200">19200</option>
+                </select>
+                <br><br>
+                <button id="connect">Connect</button>
+                <button id="disconnect" disabled>Disconnect</button>
+            </div>
+            <div class="serial-monitor">
+                <textarea id="monitor" readonly></textarea>
+            </div>
+        </div>
+    `
+};
+
+function showPage(page) {
+    document.getElementById('app').innerHTML = pages[page];
+    if (page === 'home') {
+        setupHomePage();
+    } else if (page === 'config') {
+        setupConfigPage();
     }
+}
 
-    function home() {
-        window.location.href = "/";
-    }
+function setupHomePage() {
+    const azInput = document.getElementById('az');
+    const elevationInput = document.getElementById('eleva');
+    const rangeInput = document.getElementById('range');
+    const azimuthHand = document.getElementById('azimuth-hand');
+    const circle = document.getElementById('circle');
+    const innerCircle = document.getElementById('inner-circle');
 
-    document.addEventListener("DOMContentLoaded", function() {
-        const circle = document.getElementById('circle');
-        const radius = circle.offsetWidth / 2;
-        const centerX = radius;
-        const centerY = radius;
+    const radius = circle.offsetWidth / 2;
+    const centerX = radius;
+    const centerY = radius;
+    const innerRadius = innerCircle.offsetWidth / 2;
+    const innerCenterX = centerX;
+    const innerCenterY = centerY;
 
-        // Create the numbers around the circle
+    function createNumbers() {
         for (let i = 0; i < 360; i += 30) {
             const angle = (i - 90) * (Math.PI / 180);
             const x = centerX + radius * 0.85 * Math.cos(angle);
@@ -324,16 +408,10 @@
             circle.appendChild(number);
         }
 
-        const innerCircle = document.getElementById('inner-circle');
-        const innerRadius = innerCircle.offsetWidth / 2;
-        const innerCenterX = centerX;
-        const innerCenterY = centerY;
-
-        // Create the numbers inside the inner circle
         for (let i = 1; i <= 12; i++) {
             const angle = (i - 3) * (Math.PI * 2) / 12;
-            const x = innerCenterX + innerRadius * 0.85 * Math.cos(angle);
-            const y = innerCenterY + innerRadius * 0.85 * Math.sin(angle);
+            const x = innerCenterX + innerRadius * 1.6 * Math.cos(angle);
+            const y = innerCenterY + innerRadius * 1.6 * Math.sin(angle);
             const number = document.createElement('div');
             number.className = 'number';
             number.textContent = i;
@@ -341,68 +419,129 @@
             number.style.top = `${(y / circle.offsetHeight) * 100}%`;
             innerCircle.appendChild(number);
         }
+    }
 
-        // Adjust the positioning when the screen width changes
-        window.addEventListener('resize', function() {
-            adjustNumberPositions();
-        });
+    function updateAzimuthHand() {
+        const azValue = parseInt(azInput.value, 10) || 0;
+        const azimuthAngle = azValue > 360 ? 0 : azValue * (Math.PI / 180);
+        azimuthHand.style.transform = `translate(-50%, -100%) rotate(${azimuthAngle}rad)`;
+    }
 
-        function adjustNumberPositions() {
-            // Remove all existing numbers
-            const existingNumbers = document.querySelectorAll('.number');
-            existingNumbers.forEach(function(number) {
-                number.remove();
+    function updateValues(data) {
+        const { azmat, elevation, range } = data;
+        azInput.value = azmat;
+        elevationInput.value = elevation;
+        rangeInput.value = range;
+        updateAzimuthHand();
+    }
+
+    function fetchData() {
+        fetch('/api/update-data')
+            .then(response => response.json())
+            .then(data => updateValues(data))
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    createNumbers();
+    updateAzimuthHand();
+
+    fetchData();
+    setInterval(fetchData, 1000); // Fetch data every second
+
+    window.addEventListener('resize', createNumbers);
+    azInput.addEventListener('input', updateAzimuthHand);
+}
+
+function setupConfigPage() {
+    const monitor = document.getElementById('monitor');
+    const bitRateInput = document.getElementById('bit-rate');
+    let port = null;
+    let reader = null;
+    let writer = null;
+
+    monitor.value = monitorData; // Load persisted monitor data
+    monitor.scrollTop = monitor.scrollHeight; // Auto-scroll to bottom
+
+    async function connect() {
+        const bitRate = bitRateInput.value;
+
+        try {
+            port = await navigator.serial.requestPort(); // Prompt the user to select a port
+            if (port && bitRate) {
+                await port.open({ baudRate: parseInt(bitRate) }); // Open the port with the selected bit rate
+
+                reader = port.readable.getReader();
+                writer = port.writable.getWriter();
+
+                monitorData += `Connected successfully at ${bitRate} baud.\n`;
+                updateMonitor();
+
+                document.getElementById('disconnect').disabled = false;
+                readLoop();
+            } else {
+                monitorData += 'Please select a Bit Rate.\n';
+                updateMonitor();
+            }
+        } catch (error) {
+            monitorData += `Error connecting: ${error.message}\n`;
+            updateMonitor();
+        }
+    }
+
+    async function readLoop() {
+        while (port.readable) {
+            try {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const decodedData = new TextDecoder().decode(value);
+                monitorData += `Data received: ${decodedData}\n`;
+                updateMonitor();
+                await sendDataToBackend(decodedData);
+            } catch (error) {
+                console.error('Error reading data:', error);
+                break;
+            }
+        }
+    }
+
+    async function sendDataToBackend(data) {
+        try {
+            const response = await fetch('/api/serial-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data })
             });
 
-            // Recreate the numbers around the circle
-            for (let i = 0; i < 360; i += 30) {
-                const angle = (i - 90) * (Math.PI / 180);
-                const x = centerX + radius * 0.85 * Math.cos(angle);
-                const y = centerY + radius * 0.85 * Math.sin(angle);
-                const number = document.createElement('div');
-                number.className = 'number';
-                number.textContent = i;
-                number.style.left = `${(x / circle.offsetWidth) * 100}%`;
-                number.style.top = `${(y / circle.offsetHeight) * 100}%`;
-                circle.appendChild(number);
-            }
-
-            // Recreate the numbers inside the inner circle
-            for (let i = 1; i <= 12; i++) {
-                const angle = (i - 3) * (Math.PI * 2) / 12;
-                const x = innerCenterX + innerRadius * 1.5 * Math.cos(angle);
-                const y = innerCenterY + innerRadius * 1.5 * Math.sin(angle);
-                const number = document.createElement('div');
-                number.className = 'number';
-                number.textContent = i;
-                number.style.left = `${(x / circle.offsetWidth) * 100}%`;
-                number.style.top = `${(y / circle.offsetHeight) * 100}%`;
-                innerCircle.appendChild(number);
-            }
+            if (!response.ok) throw new Error('Network response was not ok');
+            console.log('Response from backend:', await response.text());
+        } catch (error) {
+            console.error('Error sending data to backend:', error);
         }
+    }
 
-        // Update the azimuth hand based on input
-        const azInput = document.getElementById('az');
-        const azimuthHand = document.getElementById('azimuth-hand');
+    async function disconnect() {
+        if (reader) reader.releaseLock();
+        if (writer) writer.releaseLock();
+        if (port && port.locked) await port.close();
 
-        function updateAzimuthHand() {
-            const azValue = parseInt(azInput.value, 10) || 0; // Get the current azimuth value, default to 0
-            if (azValue > 360) {
-                azimuthHand.style.transform = `translate(-50%, -100%) rotate(0rad)`;
-                return; // Exit the function early
-            }
+        monitorData += 'Disconnected.\n';
+        updateMonitor();
+        document.getElementById('disconnect').disabled = true;
+    }
 
-            const azimuthAngle = azValue  * (Math.PI / 180); // Convert azimuth value to radians
+    function updateMonitor() {
+        monitor.value = monitorData;
+        monitor.scrollTop = monitor.scrollHeight; // Auto-scroll to bottom
+    }
 
-            azimuthHand.style.transform = `translate(-50%, -100%) rotate(${azimuthAngle}rad)`;
-        }
+    document.getElementById('connect').addEventListener('click', connect);
+    document.getElementById('disconnect').addEventListener('click', disconnect);
+}
 
-        azInput.addEventListener('input', updateAzimuthHand);
+// Initialize the default page
+showPage('home');
 
-        // Initial call to set positions and update the azimuth hand
-        adjustNumberPositions();
-        updateAzimuthHand();
-    });
 </script>
 </body>
 </html>
