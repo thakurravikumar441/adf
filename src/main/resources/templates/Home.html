@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <title>Acoustic Direction Finder</title>
     <style>
         body {
@@ -10,6 +14,72 @@
             margin: 0;
             font-family: Arial, sans-serif;
         }
+        #map {
+            top:65px;
+            height: 650px;
+            width: 60%;
+            max-width: auto;
+            left: 20%;
+            margin-top: 10px;
+            border: 2px solid black;
+            position: relative;
+        }
+        #map-container {
+            position: relative;
+        }
+
+
+        .mapfunction {
+
+            position: absolute;
+            top: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+
+        }
+
+        .zoom-controls {
+            position: absolute; /* Positioned absolute to place on the map */
+            top: 10px; /* Top margin within the map */
+            left: 10px; /* Left margin within the map */
+            z-index: 1000; /* On top of other elements */
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+            padding: 5px; /* Padding inside the zoom controls */
+            border-radius: 5px; /* Rounded corners for zoom controls */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow effect */
+        }
+
+        #mapfunction button, #mapfunction input , .zoom-controls button {
+            display: block;
+            margin: 5% 0;
+            width: 100%;
+            cursor: pointer;
+
+            }
+
+            .mapfunction input[type="text"] {
+                margin-right: 10px;
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+            }
+
+            .mapfunction button {
+                padding: 5px 10px;
+                border: none;
+                border-radius: 3px;
+                background-color: #007bff;
+                color: white;
+
+            }
+
+            .mapfunction button:hover {
+                background-color: #0056b3;
+            }
 
         .data{
         width : 84%;
@@ -135,6 +205,7 @@
             text-align: center;
             transform: translate(-50%, -50%);
         }
+
         .text2{
            margin-top : 100%;
            margin-left : 30%;
@@ -304,11 +375,12 @@
 <div class="Navbar">
     <button onclick="showPage('home')">Home</button>
     <button onclick="showPage('config')">Config</button>
+    <button onclick="showPage('map')">Map</button>
 </div>
 <div id="app"></div>
 <script>
 let monitorData = ''; // Global variable to store monitor data
-
+let graphData = []; // Global variable to store all graph data points
 const pages = {
     home: `
         <div class="Logo">
@@ -340,6 +412,7 @@ const pages = {
                 <div id="azimuth-hand" class="azimuth-hand"></div>
                 <h3 class="text2">Directional Clock</h3>
             </div>
+             <div id="graph" style="width:800px;height:800px;"></div> <!-- Graph container -->
         </div>
     `,
     config: `
@@ -368,6 +441,24 @@ const pages = {
                 <textarea id="monitor" readonly></textarea>
             </div>
         </div>
+    `,
+    map: `
+    <div class="Logo">
+        <img src="https://www.drdo.gov.in/drdo/sites/default/files/drdo_logo_0.png?w=100" alt="Logo">
+        <div class="ProjectName">
+            <div class="projectName1">Acoustic</div>
+            <div class="projectName2">Direction</div>
+            <div class="projectName3">Finder</div>
+        </div>
+    </div>
+    <div id="map-container">
+        <div id="map">
+    </div>
+
+    <div class="mapfunction" >
+        <input type="text" id="search" placeholder="Search location...">
+        <button onclick="searchLocation()">Search</button>
+    </div>
     `
 };
 
@@ -378,7 +469,11 @@ function showPage(page) {
     } else if (page === 'config') {
         setupConfigPage();
     }
+    else if (page === 'map'){
+    setupMapPage();
+    }
 }
+
 
 function setupHomePage() {
     const azInput = document.getElementById('az');
@@ -394,19 +489,48 @@ function setupHomePage() {
     const innerRadius = innerCircle.offsetWidth / 2;
     const innerCenterX = centerX;
     const innerCenterY = centerY;
+    function drawGraph() {
+    const graphDiv = document.getElementById('graph');
+
+    const data = [{
+      type: 'scatter3d',
+      mode: 'markers',
+      x: graphData.map(d => d.azimuth),
+      y: graphData.map(d => d.elevation),
+      z: graphData.map(d => d.range),
+      marker: {
+        size: 5,
+        color: graphData.map(d => d.range),
+        colorscale: 'Viridis'
+      }
+    }];
+     const layout = {
+      scene: {
+        xaxis: { title: 'Azimuth Angle (Degree)' },
+        yaxis: { title: 'Elevation Angle (Degree)' },
+        zaxis: { title: 'Range (meters)' }
+      }
+    };
+
+    Plotly.newPlot(graphDiv, data, layout);
+  }
 
     function createNumbers() {
         for (let i = 0; i < 360; i += 30) {
-            const angle = (i - 90) * (Math.PI / 180);
-            const x = centerX + radius * 0.85 * Math.cos(angle);
-            const y = centerY + radius * 0.85 * Math.sin(angle);
-            const number = document.createElement('div');
-            number.className = 'number';
-            number.textContent = i;
-            number.style.left = `${(x / circle.offsetWidth) * 100}%`;
-            number.style.top = `${(y / circle.offsetHeight) * 100}%`;
-            circle.appendChild(number);
-        }
+        // Adjust to start at 3 o'clock position
+        const angle = (360 - i) * (Math.PI / 180);
+        const x = centerX + radius * 0.85 * Math.cos(angle);
+        const y = centerY + radius * 0.85 * Math.sin(angle);
+        const number = document.createElement('div');
+        number.className = 'number';
+        number.textContent = i;
+        number.style.left = `${(x / circle.offsetWidth) * 100}%`;
+        number.style.top = `${(y / circle.offsetHeight) * 100}%`;
+
+
+        circle.appendChild(number);
+    }
+
 
         for (let i = 1; i <= 12; i++) {
             const angle = (i - 3) * (Math.PI * 2) / 12;
@@ -421,24 +545,33 @@ function setupHomePage() {
         }
     }
 
+
+
     function updateAzimuthHand() {
-        const azValue = parseInt(azInput.value, 10) || 0;
-        const azimuthAngle = azValue > 360 ? 0 : azValue * (Math.PI / 180);
-        azimuthHand.style.transform = `translate(-50%, -100%) rotate(${azimuthAngle}rad)`;
-    }
+    const azValue = parseInt(azInput.value, 10) || 0;
+    // Adjust angle so that 90 degrees is at the top and move anticlockwise
+    const azimuthAngle = (90 - azValue) * (Math.PI / 180);
+    azimuthHand.style.transform = `translate(-50%, -100%) rotate(${azimuthAngle}rad)`;
+}
 
     function updateValues(data) {
         const { azmat, elevation, range } = data;
         azInput.value = azmat;
         elevationInput.value = elevation;
         rangeInput.value = range;
+
+        // Add the new data point to graphData
+        graphData.push({ azimuth: azmat, elevation: elevation, range: range });
+        drawGraph();
         updateAzimuthHand();
     }
 
     function fetchData() {
         fetch('/api/update-data')
             .then(response => response.json())
-            .then(data => updateValues(data))
+            .then(data => {
+                updateValues(data);
+            })
             .catch(error => console.error('Error fetching data:', error));
     }
 
@@ -537,10 +670,75 @@ function setupConfigPage() {
     document.getElementById('connect').addEventListener('click', connect);
     document.getElementById('disconnect').addEventListener('click', disconnect);
 }
+function setupMapPage() {
+    // Initialize the map centered on the server's initial location
+    var map = L.map('map').setView([28.640627304904214, 77.04703758721507], 18);
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© sspl'
+    }).addTo(map);
+
+    // Marker for the server's location
+    var originMarker = L.marker([28.640627304904214, 77.04703758721507]).addTo(map)
+        .bindPopup("Server Location").openPopup();
+
+    // Marker for the calculated coordinates
+    var calculatedMarker = L.marker([0, 0]).addTo(map); // Placeholder marker
+
+    // Function to update the marker based on backend data
+    function updateMarker() {
+        fetch('/api/map-geo')
+            .then(response => response.json())
+
+            .then(data => {
+                var latitude = data.latitude;
+                var longitude = data.longitude;
+
+                // Update the marker position
+                calculatedMarker.setLatLng([latitude, longitude])
+                    .bindPopup("Calculated Position: Latitude " + latitude + ", Longitude " + longitude)
+                    .openPopup();
+
+                // Center the map on the updated position
+                map.setView([latitude, longitude], 18);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Call updateMarker function every 5 seconds (or any interval you prefer)
+    setInterval(updateMarker,5000);
+
+    // Zoom functions
+    function zoomIn() {
+        map.zoomIn();
+    }
+
+    function zoomOut() {
+        map.zoomOut();
+    }
+
+    // Search function
+    function searchLocation() {
+        var geocoder = L.Control.Geocoder.nominatim();
+        var query = document.getElementById('search').value;
+
+        geocoder.geocode(query, function(results) {
+            if (results.length > 0) {
+                var result = results[0];
+                map.setView(result.center, 15);
+                L.marker(result.center).addTo(map)
+                    .bindPopup(result.name || result.html || 'Searched location').openPopup();
+            } else {
+                alert('Place not found!');
+            }
+        });
+    }
+}
 
 // Initialize the default page
 showPage('home');
-
 </script>
 </body>
 </html>

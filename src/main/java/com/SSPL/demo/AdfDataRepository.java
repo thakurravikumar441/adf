@@ -1,2 +1,8 @@
-package com.SSPL.demo;public class AdfDataRepository {
+package com.SSPL.demo;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface AdfDataRepository extends JpaRepository<database, Integer> {
 }
